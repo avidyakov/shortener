@@ -26,6 +26,7 @@ func createShortLink(res http.ResponseWriter, req *http.Request) {
 	shortLinkID := generateShortID(8)
 	links[shortLinkID] = string(originLink)
 	shortLink := fmt.Sprintf("%s/%s", baseURL, shortLinkID)
+	res.WriteHeader(http.StatusCreated)
 	res.Write([]byte(shortLink))
 }
 
@@ -34,7 +35,7 @@ func redirect(w http.ResponseWriter, r *http.Request) {
 	originLink, ok := links[shortLinkID]
 
 	if ok {
-		http.Redirect(w, r, originLink, http.StatusMovedPermanently)
+		http.Redirect(w, r, originLink, http.StatusTemporaryRedirect)
 	} else {
 		w.WriteHeader(http.StatusNotFound)
 	}
