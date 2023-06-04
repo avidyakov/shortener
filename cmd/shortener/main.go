@@ -2,11 +2,11 @@ package main
 
 import (
 	"github.com/avidyakov/shortener/cmd/shortener/handlers"
+	"log"
 	"net/http"
 )
 
 func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc(`/`, handlers.Handle)
-	http.ListenAndServe(`:8080`, mux)
+	log.Println("Starting server on port 8080")
+	http.ListenAndServe(":8080", handlers.LinkRouter())
 }

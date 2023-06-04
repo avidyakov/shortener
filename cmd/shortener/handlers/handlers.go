@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"github.com/avidyakov/shortener/cmd/shortener/repositories"
 	"github.com/avidyakov/shortener/cmd/shortener/utils"
+	"github.com/go-chi/chi/v5"
 	"io"
+	"log"
 	"net/http"
 )
 
 var baseURL = "http://localhost:8080"
 var repo = repositories.NewMemoryLink()
 
-func createShortLink(res http.ResponseWriter, req *http.Request) {
+func CreateShortLink(res http.ResponseWriter, req *http.Request) {
 	originLink, _ := io.ReadAll(req.Body)
 	shortLinkID := utils.GenerateShortID(8)
 	repo.CreateLink(shortLinkID, string(originLink))
@@ -19,26 +21,26 @@ func createShortLink(res http.ResponseWriter, req *http.Request) {
 	shortLink := fmt.Sprintf("%s/%s", baseURL, shortLinkID)
 	res.WriteHeader(http.StatusCreated)
 	res.Write([]byte(shortLink))
+
+	log.Printf("Short link created: %s -> %s", shortLink, originLink)
 }
 
-func redirect(w http.ResponseWriter, r *http.Request) {
-	shortLinkID := r.URL.Path[1:]
+func Redirect(w http.ResponseWriter, r *http.Request) {
+	shortLinkID := chi.URLParam(r, "slug")
 	originLink, ok := repo.GetLink(shortLinkID)
 
 	if ok {
 		http.Redirect(w, r, originLink, http.StatusTemporaryRedirect)
+		log.Printf("Redirected from %s/%s to %s", baseURL, shortLinkID, originLink)
 	} else {
 		w.WriteHeader(http.StatusNotFound)
+		log.Printf("Short link %s/%s not found", baseURL, shortLinkID)
 	}
 }
 
-func Handle(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		createShortLink(w, r)
-	case http.MethodGet:
-		redirect(w, r)
-	default:
-		w.WriteHeader(http.StatusMethodNotAllowed)
-	}
+func LinkRouter() chi.Router {
+	r := chi.NewRouter()
+	r.Post("/", CreateShortLink)
+	r.Get("/{slug}", Redirect)
+	return r
 }

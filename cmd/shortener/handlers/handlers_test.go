@@ -10,40 +10,48 @@ import (
 )
 
 func TestRedirect(t *testing.T) {
-	repo = repositories.NewMemoryLink()
-
+	ts := httptest.NewServer(LinkRouter())
+	defer ts.Close()
 	repo.CreateLink("12345678", "https://www.google.com")
-	req := httptest.NewRequest(http.MethodGet, "/12345678", nil)
-	res := httptest.NewRecorder()
+	client := ts.Client()
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
 
-	redirect(res, req)
+	resp, err := client.Get(ts.URL + "/12345678")
+	require.NoError(t, err)
+	defer resp.Body.Close()
 
-	require.Equal(t, http.StatusTemporaryRedirect, res.Code, "Expected status code %d, but got %d", http.StatusTemporaryRedirect, res.Code)
-	require.Equal(t, "https://www.google.com", res.Header().Get("Location"), "Expected Location header %s, but got %s", "https://www.google.com", res.Header().Get("Location"))
+	require.Equal(t, http.StatusTemporaryRedirect, resp.StatusCode, "Expected status code %d, but got %d", http.StatusTemporaryRedirect, resp.StatusCode)
+	require.Equal(t, "https://www.google.com", resp.Header.Get("Location"), "Expected Location header %s, but got %s", "https://www.google.com", resp.Header.Get("Location"))
 }
 
 func TestRedirectNotFound(t *testing.T) {
 	repo = repositories.NewMemoryLink()
+	ts := httptest.NewServer(LinkRouter())
+	client := ts.Client()
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/12345678", nil)
-	res := httptest.NewRecorder()
+	resp, err := client.Get(ts.URL + "/12345678")
+	require.NoError(t, err)
+	defer resp.Body.Close()
 
-	redirect(res, req)
-
-	require.Equal(t, http.StatusNotFound, res.Code, "Expected status code %d, but got %d", http.StatusNotFound, res.Code)
+	require.Equal(t, http.StatusNotFound, resp.StatusCode, "Expected status code %d, but got %d", http.StatusNotFound, resp.StatusCode)
 }
 
 func TestCreateLink(t *testing.T) {
 	repo = repositories.NewMemoryLink()
+	ts := httptest.NewServer(LinkRouter())
+	client := ts.Client()
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
 
-	req := httptest.NewRequest(
-		http.MethodPost,
-		"/",
-		strings.NewReader("https://www.google.com"),
-	)
-	res := httptest.NewRecorder()
+	resp, err := client.Post(ts.URL, "text/plain", strings.NewReader("https://www.google.com"))
+	require.NoError(t, err)
+	defer resp.Body.Close()
 
-	createShortLink(res, req)
-
-	require.Equal(t, http.StatusCreated, res.Code, "Expected status code %d, but got %d", http.StatusCreated, res.Code)
+	require.Equal(t, http.StatusCreated, resp.StatusCode, "Expected status code %d, but got %d", http.StatusCreated, resp.StatusCode)
 }
