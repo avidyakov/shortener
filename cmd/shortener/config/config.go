@@ -1,29 +1,18 @@
 package config
 
-import (
-	"flag"
-	"log"
-)
+import "flag"
 
-type configStruct struct {
+type ConfigStruct struct {
 	BaseURL    string
 	ServerAddr string
 }
 
-func newConfig() *configStruct {
-	serverAddr := flag.String("a", ":8080", "server address")
-	baseURL := flag.String("b", "http://localhost:8080", "base url for short links")
+func NewConfig() *ConfigStruct {
+	config := new(ConfigStruct)
+	flag.StringVar(&config.ServerAddr, "a", ":8080", "server address")
+	flag.StringVar(&config.BaseURL, "b", "http://localhost:8080", "base url for short links")
 	flag.Parse()
-
-	return &configStruct{
-		BaseURL:    *baseURL,
-		ServerAddr: *serverAddr,
-	}
+	return config
 }
 
-var Config *configStruct
-
-func init() {
-	log.Println("Initializing config")
-	Config = newConfig()
-}
+var Config *ConfigStruct

@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"fmt"
-	. "github.com/avidyakov/shortener/cmd/shortener/config"
+	"github.com/avidyakov/shortener/cmd/shortener/config"
 	"github.com/avidyakov/shortener/cmd/shortener/repositories"
 	"github.com/avidyakov/shortener/cmd/shortener/utils"
 	"github.com/go-chi/chi/v5"
@@ -18,7 +18,7 @@ func CreateShortLink(res http.ResponseWriter, req *http.Request) {
 	shortLinkID := utils.GenerateShortID(8)
 	repo.CreateLink(shortLinkID, string(originLink))
 
-	shortLink := fmt.Sprintf("%s/%s", Config.BaseURL, shortLinkID)
+	shortLink := fmt.Sprintf("%s/%s", config.Config.BaseURL, shortLinkID)
 	res.WriteHeader(http.StatusCreated)
 	res.Write([]byte(shortLink))
 
@@ -31,10 +31,10 @@ func Redirect(w http.ResponseWriter, r *http.Request) {
 
 	if ok {
 		http.Redirect(w, r, originLink, http.StatusTemporaryRedirect)
-		log.Printf("Redirected: %s/%s -> %s", Config.BaseURL, shortLinkID, originLink)
+		log.Printf("Redirected: %s/%s -> %s", config.Config.BaseURL, shortLinkID, originLink)
 	} else {
 		w.WriteHeader(http.StatusNotFound)
-		log.Printf("Short link %s/%s not found", Config.BaseURL, shortLinkID)
+		log.Printf("Short link %s/%s not found", config.Config.BaseURL, shortLinkID)
 	}
 }
 

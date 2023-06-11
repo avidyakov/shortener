@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/avidyakov/shortener/cmd/shortener/config"
 	"github.com/avidyakov/shortener/cmd/shortener/repositories"
 	"github.com/stretchr/testify/require"
 	"net/http"
@@ -9,7 +10,16 @@ import (
 	"testing"
 )
 
+func init() {
+	config.Config = &config.ConfigStruct{
+		BaseURL:    "http://localhost:8080",
+		ServerAddr: ":8080",
+	}
+}
+
 func TestRedirect(t *testing.T) {
+	repo = repositories.NewMemoryLink()
+
 	ts := httptest.NewServer(LinkRouter())
 	defer ts.Close()
 	repo.CreateLink("12345678", "https://www.google.com")
@@ -28,6 +38,7 @@ func TestRedirect(t *testing.T) {
 
 func TestRedirectNotFound(t *testing.T) {
 	repo = repositories.NewMemoryLink()
+
 	ts := httptest.NewServer(LinkRouter())
 	client := ts.Client()
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
@@ -43,6 +54,7 @@ func TestRedirectNotFound(t *testing.T) {
 
 func TestCreateLink(t *testing.T) {
 	repo = repositories.NewMemoryLink()
+
 	ts := httptest.NewServer(LinkRouter())
 	client := ts.Client()
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
