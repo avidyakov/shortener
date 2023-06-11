@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	config.Config = &config.ConfigStruct{
+	config.Cfg = &config.Config{
 		BaseURL:    "http://localhost:8080",
 		ServerAddr: ":8080",
 	}

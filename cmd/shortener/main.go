@@ -9,7 +9,7 @@ import (
 
 func main() {
 	log.Printf("Initializing config")
-	config.Config = config.NewConfig()
-	log.Printf("Starting server at %s", config.Config.ServerAddr)
-	http.ListenAndServe(config.Config.ServerAddr, handlers.LinkRouter())
+	config.Cfg = config.NewConfig()
+	log.Printf("Starting server at %s", config.Cfg.ServerAddr)
+	http.ListenAndServe(config.Cfg.ServerAddr, handlers.LinkRouter())
 }
