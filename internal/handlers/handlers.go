@@ -2,21 +2,27 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/avidyakov/shortener/cmd/shortener/config"
-	"github.com/avidyakov/shortener/cmd/shortener/repositories"
-	"github.com/avidyakov/shortener/cmd/shortener/utils"
+	"github.com/avidyakov/shortener/internal/config"
+	"github.com/avidyakov/shortener/internal/repositories"
+	"github.com/avidyakov/shortener/internal/utils"
 	"github.com/go-chi/chi/v5"
 	"io"
 	"log"
 	"net/http"
 )
 
-var repo = repositories.NewMemoryLink()
+var Repo repositories.LinkRepo
 
 func CreateShortLink(res http.ResponseWriter, req *http.Request) {
-	originLink, _ := io.ReadAll(req.Body)
+	originLink, err := io.ReadAll(req.Body)
+	if err != nil {
+		log.Printf("Error reading request body: %s", err)
+		res.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	shortLinkID := utils.GenerateShortID(8)
-	repo.CreateLink(shortLinkID, string(originLink))
+	Repo.CreateLink(shortLinkID, string(originLink))
 
 	shortLink := fmt.Sprintf("%s/%s", config.Cfg.BaseURL, shortLinkID)
 	res.WriteHeader(http.StatusCreated)
@@ -27,7 +33,7 @@ func CreateShortLink(res http.ResponseWriter, req *http.Request) {
 
 func Redirect(w http.ResponseWriter, r *http.Request) {
 	shortLinkID := chi.URLParam(r, "slug")
-	originLink, ok := repo.GetLink(shortLinkID)
+	originLink, ok := Repo.GetLink(shortLinkID)
 
 	if ok {
 		http.Redirect(w, r, originLink, http.StatusTemporaryRedirect)
