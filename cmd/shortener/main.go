@@ -10,11 +10,11 @@ import (
 
 func main() {
 	log.Printf("Initializing config")
-	config.Cfg = config.NewConfig()
+	cfg := config.NewConfig()
 
 	log.Printf("Initializing handlers")
-	handlers.Repo = repositories.NewMemoryLink()
+	handler := handlers.NewLinkHandlers(repositories.NewMemoryLink(), cfg)
 
-	log.Printf("Starting server at %s", config.Cfg.ServerAddr)
-	http.ListenAndServe(config.Cfg.ServerAddr, handlers.LinkRouter())
+	log.Printf("Starting server at %s", cfg.ServerAddr)
+	http.ListenAndServe(cfg.ServerAddr, handler.LinkRouter())
 }

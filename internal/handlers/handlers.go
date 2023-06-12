@@ -11,9 +11,19 @@ import (
 	"net/http"
 )
 
-var Repo repositories.LinkRepo
+type LinkHandlers struct {
+	repo repositories.LinkRepo
+	cfg  *config.Config
+}
 
-func CreateShortLink(res http.ResponseWriter, req *http.Request) {
+func NewLinkHandlers(repo repositories.LinkRepo, cfg *config.Config) *LinkHandlers {
+	return &LinkHandlers{
+		repo: repo,
+		cfg:  cfg,
+	}
+}
+
+func (h *LinkHandlers) CreateShortLink(res http.ResponseWriter, req *http.Request) {
 	originLink, err := io.ReadAll(req.Body)
 	if err != nil {
 		log.Printf("Error reading request body: %s", err)
@@ -22,31 +32,31 @@ func CreateShortLink(res http.ResponseWriter, req *http.Request) {
 	}
 
 	shortLinkID := utils.GenerateShortID(8)
-	Repo.CreateLink(shortLinkID, string(originLink))
+	h.repo.CreateLink(shortLinkID, string(originLink))
 
-	shortLink := fmt.Sprintf("%s/%s", config.Cfg.BaseURL, shortLinkID)
+	shortLink := fmt.Sprintf("%s/%s", h.cfg.BaseURL, shortLinkID)
 	res.WriteHeader(http.StatusCreated)
 	res.Write([]byte(shortLink))
 
 	log.Printf("Short link created: %s -> %s", shortLink, originLink)
 }
 
-func Redirect(w http.ResponseWriter, r *http.Request) {
+func (h *LinkHandlers) Redirect(w http.ResponseWriter, r *http.Request) {
 	shortLinkID := chi.URLParam(r, "slug")
-	originLink, ok := Repo.GetLink(shortLinkID)
+	originLink, ok := h.repo.GetLink(shortLinkID)
 
 	if ok {
 		http.Redirect(w, r, originLink, http.StatusTemporaryRedirect)
-		log.Printf("Redirected: %s/%s -> %s", config.Cfg.BaseURL, shortLinkID, originLink)
+		log.Printf("Redirected: %s/%s -> %s", h.cfg.BaseURL, shortLinkID, originLink)
 	} else {
 		w.WriteHeader(http.StatusNotFound)
-		log.Printf("Short link %s/%s not found", config.Cfg.BaseURL, shortLinkID)
+		log.Printf("Short link %s/%s not found", h.cfg.BaseURL, shortLinkID)
 	}
 }
 
-func LinkRouter() chi.Router {
+func (h *LinkHandlers) LinkRouter() chi.Router {
 	r := chi.NewRouter()
-	r.Post("/", CreateShortLink)
-	r.Get("/{slug}", Redirect)
+	r.Post("/", h.CreateShortLink)
+	r.Get("/{slug}", h.Redirect)
 	return r
 }

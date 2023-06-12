@@ -3,6 +3,7 @@ package repositories
 type LinkRepo interface {
 	GetLink(string) (string, bool)
 	CreateLink(string, string)
+	RemoveLink(string)
 }
 
 type memoryLink struct {
@@ -22,4 +23,8 @@ func (m *memoryLink) GetLink(shortLinkID string) (originLink string, ok bool) {
 
 func (m *memoryLink) CreateLink(shortLinkID, originLink string) {
 	m.links[shortLinkID] = originLink
+}
+
+func (m *memoryLink) RemoveLink(shortLinkID string) {
+	delete(m.links, shortLinkID)
 }

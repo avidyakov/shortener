@@ -10,23 +10,38 @@ import (
 	"testing"
 )
 
-func init() {
-	config.Cfg = &config.Config{
-		BaseURL:    "http://localhost:8080",
-		ServerAddr: ":8080",
-	}
-}
+var h *LinkHandlers
+var ts *httptest.Server
+var client *http.Client
 
-func TestRedirect(t *testing.T) {
-	Repo = repositories.NewMemoryLink()
+func TestMain(m *testing.M) {
+	h = NewLinkHandlers(
+		repositories.NewMemoryLink(), &config.Config{
+			BaseURL:    "http://localhost:8080",
+			ServerAddr: ":8080",
+		})
 
-	ts := httptest.NewServer(LinkRouter())
+	ts = httptest.NewServer(h.LinkRouter())
 	defer ts.Close()
-	Repo.CreateLink("12345678", "https://www.google.com")
-	client := ts.Client()
+
+	client = ts.Client()
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
+
+	m.Run()
+}
+
+func createLink(t *testing.T, shortLink, originLink string) {
+	h.repo.CreateLink(shortLink, originLink)
+
+	t.Cleanup(func() {
+		h.repo.RemoveLink(shortLink)
+	})
+}
+
+func TestRedirect(t *testing.T) {
+	createLink(t, "12345678", "https://www.google.com")
 
 	resp, err := client.Get(ts.URL + "/12345678")
 	require.NoError(t, err)
@@ -37,14 +52,6 @@ func TestRedirect(t *testing.T) {
 }
 
 func TestRedirectNotFound(t *testing.T) {
-	Repo = repositories.NewMemoryLink()
-
-	ts := httptest.NewServer(LinkRouter())
-	client := ts.Client()
-	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		return http.ErrUseLastResponse
-	}
-
 	resp, err := client.Get(ts.URL + "/12345678")
 	require.NoError(t, err)
 	defer resp.Body.Close()
@@ -53,14 +60,6 @@ func TestRedirectNotFound(t *testing.T) {
 }
 
 func TestCreateLink(t *testing.T) {
-	Repo = repositories.NewMemoryLink()
-
-	ts := httptest.NewServer(LinkRouter())
-	client := ts.Client()
-	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		return http.ErrUseLastResponse
-	}
-
 	resp, err := client.Post(ts.URL, "text/plain", strings.NewReader("https://www.google.com"))
 	require.NoError(t, err)
 	defer resp.Body.Close()

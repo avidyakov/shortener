@@ -26,5 +26,3 @@ func NewConfig() *Config {
 	}
 	return config
 }
-
-var Cfg *Config
