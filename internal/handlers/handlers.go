@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/avidyakov/shortener/internal/config"
 	"github.com/avidyakov/shortener/internal/repositories"
 	"github.com/avidyakov/shortener/internal/utils"
 	"github.com/go-chi/chi/v5"
@@ -12,14 +11,14 @@ import (
 )
 
 type LinkHandlers struct {
-	repo repositories.LinkRepo
-	cfg  *config.Config
+	repo    repositories.LinkRepo
+	baseURL string
 }
 
-func NewLinkHandlers(repo repositories.LinkRepo, cfg *config.Config) *LinkHandlers {
+func NewLinkHandlers(repo repositories.LinkRepo, baseURL string) *LinkHandlers {
 	return &LinkHandlers{
-		repo: repo,
-		cfg:  cfg,
+		repo:    repo,
+		baseURL: baseURL,
 	}
 }
 
@@ -34,7 +33,7 @@ func (h *LinkHandlers) CreateShortLink(res http.ResponseWriter, req *http.Reques
 	shortLinkID := utils.GenerateShortID(8)
 	h.repo.CreateLink(shortLinkID, string(originLink))
 
-	shortLink := fmt.Sprintf("%s/%s", h.cfg.BaseURL, shortLinkID)
+	shortLink := fmt.Sprintf("%s/%s", h.baseURL, shortLinkID)
 	res.WriteHeader(http.StatusCreated)
 	res.Write([]byte(shortLink))
 
@@ -47,10 +46,10 @@ func (h *LinkHandlers) Redirect(w http.ResponseWriter, r *http.Request) {
 
 	if ok {
 		http.Redirect(w, r, originLink, http.StatusTemporaryRedirect)
-		log.Printf("Redirected: %s/%s -> %s", h.cfg.BaseURL, shortLinkID, originLink)
+		log.Printf("Redirected: %s/%s -> %s", h.baseURL, shortLinkID, originLink)
 	} else {
 		w.WriteHeader(http.StatusNotFound)
-		log.Printf("Short link %s/%s not found", h.cfg.BaseURL, shortLinkID)
+		log.Printf("Short link %s/%s not found", h.baseURL, shortLinkID)
 	}
 }
 

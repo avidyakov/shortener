@@ -13,7 +13,7 @@ func main() {
 	cfg := config.NewConfig()
 
 	log.Printf("Initializing handlers")
-	handler := handlers.NewLinkHandlers(repositories.NewMemoryLink(), cfg)
+	handler := handlers.NewLinkHandlers(repositories.NewMemoryLink(), cfg.BaseURL)
 
 	log.Printf("Starting server at %s", cfg.ServerAddr)
 	http.ListenAndServe(cfg.ServerAddr, handler.LinkRouter())
