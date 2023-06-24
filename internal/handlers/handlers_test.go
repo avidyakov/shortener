@@ -1,9 +1,10 @@
 package handlers
 
 import (
-	"github.com/avidyakov/shortener/internal/config"
+	"github.com/avidyakov/shortener/internal/logger"
 	"github.com/avidyakov/shortener/internal/repositories"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -15,11 +16,12 @@ var ts *httptest.Server
 var client *http.Client
 
 func TestMain(m *testing.M) {
+	logger.Log, _ = zap.NewProduction()
+	defer logger.Log.Sync()
+
 	h = NewLinkHandlers(
-		repositories.NewMemoryLink(), &config.Config{
-			BaseURL:    "http://localhost:8080",
-			ServerAddr: ":8080",
-		})
+		repositories.NewMemoryLink(), "http://localhost:8080",
+	)
 
 	ts = httptest.NewServer(h.LinkRouter())
 	defer ts.Close()

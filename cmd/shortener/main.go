@@ -3,18 +3,22 @@ package main
 import (
 	"github.com/avidyakov/shortener/internal/config"
 	"github.com/avidyakov/shortener/internal/handlers"
+	"github.com/avidyakov/shortener/internal/logger"
 	"github.com/avidyakov/shortener/internal/repositories"
-	"log"
+	"go.uber.org/zap"
 	"net/http"
 )
 
 func main() {
-	log.Printf("Initializing config")
-	cfg := config.NewConfig()
+	logger.Log, _ = zap.NewProduction()
+	defer logger.Log.Sync()
 
-	log.Printf("Initializing handlers")
+	logger.Log.Info("Initializing server configuration and handlers")
+	cfg := config.NewConfig()
 	handler := handlers.NewLinkHandlers(repositories.NewMemoryLink(), cfg.BaseURL)
 
-	log.Printf("Starting server at %s", cfg.ServerAddr)
+	logger.Log.Info("Starting server",
+		zap.String("serverAddr", cfg.ServerAddr),
+	)
 	http.ListenAndServe(cfg.ServerAddr, handler.LinkRouter())
 }

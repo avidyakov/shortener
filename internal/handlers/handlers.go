@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/avidyakov/shortener/internal/logger"
 	"github.com/avidyakov/shortener/internal/repositories"
 	"github.com/avidyakov/shortener/internal/utils"
 	"github.com/go-chi/chi/v5"
+	"go.uber.org/zap"
 	"io"
 	"log"
 	"net/http"
@@ -37,7 +39,10 @@ func (h *LinkHandlers) CreateShortLink(res http.ResponseWriter, req *http.Reques
 	res.WriteHeader(http.StatusCreated)
 	res.Write([]byte(shortLink))
 
-	log.Printf("Short link created: %s -> %s", shortLink, originLink)
+	logger.Log.Info("Short link created",
+		zap.String("shortLink", shortLink),
+		zap.String("originLink", string(originLink)),
+	)
 }
 
 func (h *LinkHandlers) Redirect(w http.ResponseWriter, r *http.Request) {
@@ -46,15 +51,21 @@ func (h *LinkHandlers) Redirect(w http.ResponseWriter, r *http.Request) {
 
 	if ok {
 		http.Redirect(w, r, originLink, http.StatusTemporaryRedirect)
-		log.Printf("Redirected: %s/%s -> %s", h.baseURL, shortLinkID, originLink)
+		logger.Log.Info("Redirected",
+			zap.String("shortLink", fmt.Sprintf("%s/%s", h.baseURL, shortLinkID)),
+			zap.String("originLink", originLink),
+		)
 	} else {
 		w.WriteHeader(http.StatusNotFound)
-		log.Printf("Short link %s/%s not found", h.baseURL, shortLinkID)
+		logger.Log.Info("Short link not found",
+			zap.String("shortLink", fmt.Sprintf("%s/%s", h.baseURL, shortLinkID)),
+		)
 	}
 }
 
 func (h *LinkHandlers) LinkRouter() chi.Router {
 	r := chi.NewRouter()
+	r.Use(logger.WithLogging)
 	r.Post("/", h.CreateShortLink)
 	r.Get("/{slug}", h.Redirect)
 	return r
