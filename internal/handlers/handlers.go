@@ -1,14 +1,15 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/avidyakov/shortener/internal/logger"
+	"github.com/avidyakov/shortener/internal/models"
 	"github.com/avidyakov/shortener/internal/repositories"
 	"github.com/avidyakov/shortener/internal/utils"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -25,15 +26,36 @@ func NewLinkHandlers(repo repositories.LinkRepo, baseURL string) *LinkHandlers {
 }
 
 func (h *LinkHandlers) CreateShortLink(res http.ResponseWriter, req *http.Request) {
-	originLink, err := io.ReadAll(req.Body)
-	if err != nil {
-		log.Printf("Error reading request body: %s", err)
-		res.WriteHeader(http.StatusBadRequest)
-		return
+	var originLink string
+	switch req.Header.Get("Content-Type") {
+	case "application/json":
+		var model models.ShortURLRequest
+		decoder := json.NewDecoder(req.Body)
+		if err := decoder.Decode(&model); err != nil {
+			logger.Log.Debug("Invalid JSON",
+				zap.Error(err),
+			)
+			http.Error(res, err.Error(), http.StatusBadRequest)
+			return
+		}
+		originLink = model.Url
+	case "text/plain":
+		originBytes, _ := io.ReadAll(req.Body)
+		originLink = string(originBytes)
+	default:
+		http.Error(res, "Unsupported content type", http.StatusUnsupportedMediaType)
 	}
 
+	validatedLink, err := utils.ValidateLink(originLink)
+	if err != nil {
+		logger.Log.Error("Invalid link",
+			zap.String("originLink", string(originLink)),
+		)
+		http.Error(res, err.Error(), http.StatusBadRequest)
+		return
+	}
 	shortLinkID := utils.GenerateShortID(8)
-	h.repo.CreateLink(shortLinkID, string(originLink))
+	h.repo.CreateLink(shortLinkID, validatedLink)
 
 	shortLink := fmt.Sprintf("%s/%s", h.baseURL, shortLinkID)
 	res.WriteHeader(http.StatusCreated)
