@@ -87,6 +87,7 @@ func (h *LinkHandlers) LinkRouter() chi.Router {
 	r := chi.NewRouter()
 	r.Use(logger.WithLogging)
 	r.Post("/", h.CreateShortLink)
+	r.Post("/api/shorten", h.CreateShortLink)
 	r.Get("/{slug}", h.Redirect)
 	return r
 }
