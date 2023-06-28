@@ -47,7 +47,7 @@ func (h *LinkHandlers) CreateShortLink(res http.ResponseWriter, req *http.Reques
 	validatedLink, err := utils.ValidateLink(originLink)
 	if err != nil {
 		logger.Log.Error("Invalid link",
-			zap.String("originLink", string(originLink)),
+			zap.String("originLink", originLink),
 		)
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
@@ -56,12 +56,19 @@ func (h *LinkHandlers) CreateShortLink(res http.ResponseWriter, req *http.Reques
 	h.repo.CreateLink(shortLinkID, validatedLink)
 
 	shortLink := fmt.Sprintf("%s/%s", h.baseURL, shortLinkID)
+	responseData := shortLink
+
+	if req.Header.Get("Content-Type") == "application/json" {
+		res.Header().Set("Content-Type", "application/json")
+		responseData = fmt.Sprintf(`{"result":"%s"}`, shortLink)
+	}
+
 	res.WriteHeader(http.StatusCreated)
-	res.Write([]byte(shortLink))
+	res.Write([]byte(responseData))
 
 	logger.Log.Info("Short link created",
 		zap.String("shortLink", shortLink),
-		zap.String("originLink", string(originLink)),
+		zap.String("originLink", originLink),
 	)
 }
 
@@ -87,7 +94,7 @@ func (h *LinkHandlers) LinkRouter() chi.Router {
 	r := chi.NewRouter()
 	r.Use(logger.WithLogging)
 	r.Post("/", h.CreateShortLink)
-	r.Post("/api/shorten", h.CreateShortLink)
+	r.Post("/api/shorten", h.CreateShortLink) // for tests only
 	r.Get("/{slug}", h.Redirect)
 	return r
 }
