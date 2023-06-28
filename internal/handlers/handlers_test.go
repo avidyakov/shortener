@@ -77,14 +77,6 @@ func TestCreateLinkJSON(t *testing.T) {
 	require.Equal(t, http.StatusCreated, resp.StatusCode, "Expected status code %d, but got %d", http.StatusCreated, resp.StatusCode)
 }
 
-func TestCreateLinkUnsupportedMediaType(t *testing.T) {
-	resp, err := client.Post(ts.URL, "application/xml", strings.NewReader("https://www.google.com"))
-	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	require.Equal(t, http.StatusUnsupportedMediaType, resp.StatusCode, "Expected status code %d, but got %d", http.StatusUnsupportedMediaType, resp.StatusCode)
-}
-
 func TestCreateLinkInvalidURL(t *testing.T) {
 	resp, err := client.Post(ts.URL, "text/plain", strings.NewReader("invalid url"))
 	require.NoError(t, err)

@@ -39,11 +39,9 @@ func (h *LinkHandlers) CreateShortLink(res http.ResponseWriter, req *http.Reques
 			return
 		}
 		originLink = model.Url
-	case "text/plain":
+	default:
 		originBytes, _ := io.ReadAll(req.Body)
 		originLink = string(originBytes)
-	default:
-		http.Error(res, "Unsupported content type", http.StatusUnsupportedMediaType)
 	}
 
 	validatedLink, err := utils.ValidateLink(originLink)

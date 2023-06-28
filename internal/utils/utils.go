@@ -8,7 +8,7 @@ import (
 
 const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-var invalidSchemeErr = errors.New("invalid scheme")
+var errInvalidScheme = errors.New("invalid scheme")
 
 func GenerateShortID(length int) string {
 	randomBytes := make([]byte, length)
@@ -27,7 +27,7 @@ func ValidateLink(link string) (string, error) {
 	}
 
 	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
-		return "", invalidSchemeErr
+		return "", errInvalidScheme
 	}
 
 	return link, nil
