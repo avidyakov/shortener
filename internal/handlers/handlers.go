@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/avidyakov/shortener/internal/encoding"
 	"github.com/avidyakov/shortener/internal/logger"
 	"github.com/avidyakov/shortener/internal/models"
 	"github.com/avidyakov/shortener/internal/repositories"
@@ -93,6 +94,7 @@ func (h *LinkHandlers) Redirect(w http.ResponseWriter, r *http.Request) {
 func (h *LinkHandlers) LinkRouter() chi.Router {
 	r := chi.NewRouter()
 	r.Use(logger.WithLogging)
+	r.Use(encoding.GZIPMiddleware)
 	r.Post("/", h.CreateShortLink)
 	r.Post("/api/shorten", h.CreateShortLink) // for tests only
 	r.Get("/{slug}", h.Redirect)
