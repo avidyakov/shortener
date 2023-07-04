@@ -9,7 +9,7 @@ import (
 type Configuration struct {
 	BaseURL    string `env:"BASE_URL"`
 	ServerAddr string `env:"SERVER_ADDR"`
-	File       string `env:"FILE"`
+	File       string `env:"FILE_STORAGE_PATH"`
 }
 
 func NewConfig() *Configuration {
