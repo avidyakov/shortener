@@ -14,11 +14,11 @@ func main() {
 	defer logger.Log.Sync()
 
 	logger.Log.Info("Initializing server configuration and handlers")
-	cfg := config.NewConfig()
-	handler := handlers.NewLinkHandlers(repositories.NewMemoryLink(), cfg.BaseURL)
+	config.Conf = config.NewConfig()
+	handler := handlers.NewLinkHandlers(repositories.NewFileRepo(), config.Conf.BaseURL)
 
 	logger.Log.Info("Starting server",
-		zap.String("serverAddr", cfg.ServerAddr),
+		zap.String("serverAddr", config.Conf.ServerAddr),
 	)
-	http.ListenAndServe(cfg.ServerAddr, handler.LinkRouter())
+	http.ListenAndServe(config.Conf.ServerAddr, handler.LinkRouter())
 }
