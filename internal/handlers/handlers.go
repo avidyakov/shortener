@@ -41,7 +41,14 @@ func (h *LinkHandlers) CreateShortLink(res http.ResponseWriter, req *http.Reques
 		}
 		originLink = model.URL
 	default:
-		originBytes, _ := io.ReadAll(req.Body)
+		originBytes, err := io.ReadAll(req.Body)
+		if err != nil {
+			logger.Log.Error("Invalid request body",
+				zap.Error(err),
+			)
+			http.Error(res, err.Error(), http.StatusBadRequest)
+			return
+		}
 		originLink = string(originBytes)
 	}
 

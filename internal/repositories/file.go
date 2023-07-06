@@ -13,15 +13,13 @@ type fileRepo struct {
 
 func NewFileRepo() LinkRepo {
 	content, err := os.ReadFile(config.Conf.File)
-	var links map[string]string
+	links := make(map[string]string)
 
 	if err == nil {
 		err = json.Unmarshal(content, &links)
 		if err != nil {
 			log.Fatal(err)
 		}
-	} else {
-		links = make(map[string]string)
 	}
 
 	return &fileRepo{
@@ -47,11 +45,13 @@ func (r *fileRepo) RemoveLink(shortLinkID string) {
 func (r *fileRepo) writeFile() {
 	jsonData, err := json.MarshalIndent(r.links, "", "  ")
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Error marshaling JSON:", err)
+		return
 	}
 
 	err = os.WriteFile(config.Conf.File, jsonData, 0644)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Error writing file:", err)
+		return
 	}
 }

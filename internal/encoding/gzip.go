@@ -8,7 +8,7 @@ import (
 )
 
 func GZIPMiddleware(h http.Handler) http.Handler {
-	inner := func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ow := w
 
 		acceptEncoding := r.Header.Get("Accept-Encoding")
@@ -32,9 +32,7 @@ func GZIPMiddleware(h http.Handler) http.Handler {
 		}
 
 		h.ServeHTTP(ow, r)
-	}
-
-	return http.HandlerFunc(inner)
+	})
 }
 
 type compressWriter struct {
