@@ -2,17 +2,17 @@ package repositories
 
 import (
 	"encoding/json"
-	"github.com/avidyakov/shortener/internal/config"
 	"log"
 	"os"
 )
 
 type fileRepo struct {
-	links map[string]string
+	links       map[string]string
+	storagePath string
 }
 
-func NewFileRepo() LinkRepo {
-	content, err := os.ReadFile(config.Conf.File)
+func NewFileRepo(storagePath string) LinkRepo {
+	content, err := os.ReadFile(storagePath)
 	links := make(map[string]string)
 
 	if err == nil {
@@ -23,7 +23,8 @@ func NewFileRepo() LinkRepo {
 	}
 
 	return &fileRepo{
-		links: links,
+		links:       links,
+		storagePath: storagePath,
 	}
 }
 
@@ -49,7 +50,7 @@ func (r *fileRepo) writeFile() {
 		return
 	}
 
-	err = os.WriteFile(config.Conf.File, jsonData, 0644)
+	err = os.WriteFile(r.storagePath, jsonData, 0644)
 	if err != nil {
 		log.Println("Error writing file:", err)
 		return

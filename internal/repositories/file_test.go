@@ -8,8 +8,8 @@ import (
 var repo LinkRepo
 
 func TestMain(m *testing.M) {
-	config.Conf = config.NewConfig()
-	repo = NewFileRepo()
+	conf := config.NewConfig()
+	repo = NewFileRepo(conf.File)
 	m.Run()
 }
 

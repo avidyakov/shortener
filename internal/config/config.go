@@ -28,5 +28,3 @@ func NewConfig() *Configuration {
 	}
 	return config
 }
-
-var Conf *Configuration
