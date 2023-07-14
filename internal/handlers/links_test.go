@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-var h *LinkHandlers
+var h *Handlers
 var ts *httptest.Server
 var client *http.Client
 
@@ -19,8 +19,8 @@ func TestMain(m *testing.M) {
 	logger.Log, _ = zap.NewProduction()
 	defer logger.Log.Sync()
 
-	h = NewLinkHandlers(
-		repositories.NewMemoryLink(), "http://localhost:8080",
+	h = NewHandlers(
+		repositories.NewMemoryLink(), "http://localhost:8080", "",
 	)
 
 	ts = httptest.NewServer(h.LinkRouter())

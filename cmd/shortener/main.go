@@ -15,7 +15,7 @@ func main() {
 
 	logger.Log.Info("Initializing server configuration and handlers")
 	conf := config.NewConfig()
-	handler := handlers.NewLinkHandlers(repositories.NewFileRepo(conf.File), conf.BaseURL)
+	handler := handlers.NewHandlers(repositories.NewFileRepo(conf.File), conf.BaseURL, conf.DatabaseDSN)
 
 	logger.Log.Info("Starting server",
 		zap.String("serverAddr", conf.ServerAddr),
