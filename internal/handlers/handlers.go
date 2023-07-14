@@ -1,109 +1,33 @@
 package handlers
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/avidyakov/shortener/internal/encoding"
 	"github.com/avidyakov/shortener/internal/logger"
-	"github.com/avidyakov/shortener/internal/models"
 	"github.com/avidyakov/shortener/internal/repositories"
-	"github.com/avidyakov/shortener/internal/utils"
 	"github.com/go-chi/chi/v5"
-	"go.uber.org/zap"
-	"io"
-	"net/http"
 )
 
-type LinkHandlers struct {
-	repo    repositories.LinkRepo
-	baseURL string
+type Handlers struct {
+	baseURL     string
+	databaseDSN string
+	repo        repositories.LinkRepo
 }
 
-func NewLinkHandlers(repo repositories.LinkRepo, baseURL string) *LinkHandlers {
-	return &LinkHandlers{
-		repo:    repo,
-		baseURL: baseURL,
-	}
-}
-
-func (h *LinkHandlers) CreateShortLink(res http.ResponseWriter, req *http.Request) {
-	var originLink string
-	switch req.Header.Get("Content-Type") {
-	case "application/json":
-		var model models.ShortURLRequest
-		decoder := json.NewDecoder(req.Body)
-		if err := decoder.Decode(&model); err != nil {
-			logger.Log.Debug("Invalid JSON",
-				zap.Error(err),
-			)
-			http.Error(res, err.Error(), http.StatusBadRequest)
-			return
-		}
-		originLink = model.URL
-	default:
-		originBytes, err := io.ReadAll(req.Body)
-		if err != nil {
-			logger.Log.Error("Invalid request body",
-				zap.Error(err),
-			)
-			http.Error(res, err.Error(), http.StatusBadRequest)
-			return
-		}
-		originLink = string(originBytes)
-	}
-
-	validatedLink, err := utils.ValidateLink(originLink)
-	if err != nil {
-		logger.Log.Error("Invalid link",
-			zap.String("originLink", originLink),
-		)
-		http.Error(res, err.Error(), http.StatusBadRequest)
-		return
-	}
-	shortLinkID := utils.GenerateShortID(8)
-	h.repo.CreateLink(shortLinkID, validatedLink)
-
-	shortLink := fmt.Sprintf("%s/%s", h.baseURL, shortLinkID)
-	responseData := shortLink
-
-	if req.Header.Get("Content-Type") == "application/json" {
-		res.Header().Set("Content-Type", "application/json")
-		responseData = fmt.Sprintf(`{"result":"%s"}`, shortLink)
-	}
-
-	res.WriteHeader(http.StatusCreated)
-	res.Write([]byte(responseData))
-
-	logger.Log.Info("Short link created",
-		zap.String("shortLink", shortLink),
-		zap.String("originLink", originLink),
-	)
-}
-
-func (h *LinkHandlers) Redirect(w http.ResponseWriter, r *http.Request) {
-	shortLinkID := chi.URLParam(r, "slug")
-	originLink, ok := h.repo.GetLink(shortLinkID)
-
-	if ok {
-		http.Redirect(w, r, originLink, http.StatusTemporaryRedirect)
-		logger.Log.Info("Redirected",
-			zap.String("shortLink", fmt.Sprintf("%s/%s", h.baseURL, shortLinkID)),
-			zap.String("originLink", originLink),
-		)
-	} else {
-		w.WriteHeader(http.StatusNotFound)
-		logger.Log.Info("Short link not found",
-			zap.String("shortLink", fmt.Sprintf("%s/%s", h.baseURL, shortLinkID)),
-		)
+func NewHandlers(repo repositories.LinkRepo, baseURL, databaseDSN string) *Handlers {
+	return &Handlers{
+		baseURL:     baseURL,
+		databaseDSN: databaseDSN,
+		repo:        repo,
 	}
 }
 
-func (h *LinkHandlers) LinkRouter() chi.Router {
+func (h *Handlers) LinkRouter() chi.Router {
 	r := chi.NewRouter()
 	r.Use(logger.WithLogging)
 	r.Use(encoding.GZIPMiddleware)
 	r.Post("/", h.CreateShortLink)
 	r.Post("/api/shorten", h.CreateShortLink) // for tests only
 	r.Get("/{slug}", h.Redirect)
+	r.Get("/ping", h.Ping)
 	return r
 }
