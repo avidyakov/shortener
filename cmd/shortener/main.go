@@ -9,13 +9,26 @@ import (
 	"net/http"
 )
 
+func getRepository(conf *config.Configuration) repositories.LinkRepo {
+	if conf.DatabaseDSN != "" {
+		return repositories.NewDBRepo(conf.DatabaseDSN)
+	}
+
+	if conf.File != "" {
+		return repositories.NewFileRepo(conf.File)
+	}
+
+	return repositories.NewMemoryRepo()
+}
+
 func main() {
 	logger.Log, _ = zap.NewProduction()
 	defer logger.Log.Sync()
 
 	logger.Log.Info("Initializing server configuration and handlers")
 	conf := config.NewConfig()
-	handler := handlers.NewHandlers(repositories.NewFileRepo(conf.File), conf.BaseURL, conf.DatabaseDSN)
+	repo := getRepository(conf)
+	handler := handlers.NewHandlers(repo, conf.BaseURL, conf.DatabaseDSN)
 
 	logger.Log.Info("Starting server",
 		zap.String("serverAddr", conf.ServerAddr),

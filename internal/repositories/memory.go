@@ -4,7 +4,7 @@ type memoryRepo struct {
 	links map[string]string
 }
 
-func NewMemoryLink() LinkRepo {
+func NewMemoryRepo() LinkRepo {
 	return &memoryRepo{
 		links: make(map[string]string),
 	}
