@@ -25,9 +25,10 @@ func (h *Handlers) LinkRouter() chi.Router {
 	r := chi.NewRouter()
 	r.Use(logger.WithLogging)
 	r.Use(encoding.GZIPMiddleware)
+	r.Get("/{slug}", h.Redirect)
 	r.Post("/", h.CreateShortLink)
 	r.Post("/api/shorten", h.CreateShortLink) // for tests only
-	r.Get("/{slug}", h.Redirect)
+	r.Post("/api/shorten/batch", h.CreateABunchOfLinks)
 	r.Get("/ping", h.Ping)
 	return r
 }

@@ -83,3 +83,39 @@ func (h *Handlers) Redirect(w http.ResponseWriter, r *http.Request) {
 		)
 	}
 }
+
+func (h *Handlers) CreateABunchOfLinks(w http.ResponseWriter, r *http.Request) {
+	var longUrls []models.RequestLinkBatch
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&longUrls); err != nil {
+		logger.Log.Debug("Invalid JSON",
+			zap.Error(err),
+		)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var shortUrls []models.ResponseLinkBatch
+	for _, link := range longUrls {
+		validatedLink, err := utils.ValidateLink(link.OriginURL)
+		if err != nil {
+			logger.Log.Error("Invalid link",
+				zap.String("originLink", link.OriginURL),
+			)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		shortLinkID := utils.GenerateShortID(8)
+		h.repo.CreateLink(shortLinkID, validatedLink)
+
+		shortLink := fmt.Sprintf("%s/%s", h.baseURL, shortLinkID)
+		shortUrls = append(shortUrls, models.ResponseLinkBatch{
+			CorrelationID: link.CorrelationID,
+			ShortURL:      shortLink,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(shortUrls)
+}
