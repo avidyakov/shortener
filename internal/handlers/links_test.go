@@ -99,10 +99,10 @@ func TestCreateLinkBacket(t *testing.T) {
 	require.Len(t, links, 2)
 
 	shortGoogleID := strings.Replace(links[0].ShortURL, h.baseURL+"/", "", -1)
-	google, _ := repo.GetLink(shortGoogleID)
+	google, _ := repo.GetOriginLink(shortGoogleID)
 	require.Equal(t, google, "https://www.google.com")
 
 	shortYandexID := strings.Replace(links[1].ShortURL, h.baseURL+"/", "", -1)
-	yandex, _ := repo.GetLink(shortYandexID)
+	yandex, _ := repo.GetOriginLink(shortYandexID)
 	require.Equal(t, yandex, "https://ya.ru")
 }

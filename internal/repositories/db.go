@@ -8,8 +8,8 @@ import (
 
 type Link struct {
 	gorm.Model
-	ID          uint `gorm:"primaryKey"`
-	OriginURL   string
+	ID          uint   `gorm:"primaryKey"`
+	OriginURL   string `gorm:"uniqueIndex"`
 	ShortLinkID string `gorm:"uniqueIndex"`
 }
 
@@ -33,7 +33,7 @@ func NewDBRepo(databaseDSN string) LinkRepo {
 	}
 }
 
-func (r *dbRepo) GetLink(shortLinkID string) (originLink string, ok bool) {
+func (r *dbRepo) GetOriginLink(shortLinkID string) (originLink string, ok bool) {
 	var link Link
 	r.db.First(&link, "short_link_id = ?", shortLinkID)
 
@@ -43,11 +43,25 @@ func (r *dbRepo) GetLink(shortLinkID string) (originLink string, ok bool) {
 	return link.OriginURL, true
 }
 
-func (r *dbRepo) CreateLink(shortLinkID string, originLink string) {
-	r.db.Create(&Link{
+func (r *dbRepo) GetShortLink(originLink string) (string, bool) {
+	var link Link
+	r.db.First(&link, "origin_url = ?", originLink)
+
+	if link.ID == 0 {
+		return "", false
+	}
+	return link.ShortLinkID, true
+}
+
+func (r *dbRepo) CreateLink(shortLinkID string, originLink string) error {
+	tx := r.db.Create(&Link{
 		OriginURL:   originLink,
 		ShortLinkID: shortLinkID,
 	})
+	if tx.Error != nil {
+		return tx.Error
+	}
+	return nil
 }
 
 func (r *dbRepo) RemoveLink(shortLinkID string) {

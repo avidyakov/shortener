@@ -46,8 +46,14 @@ func (h *Handlers) CreateShortLink(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	shortLinkID := utils.GenerateShortID(8)
-	h.repo.CreateLink(shortLinkID, validatedLink)
+	err = h.repo.CreateLink(shortLinkID, validatedLink)
+	status := http.StatusCreated
+	if err != nil {
+		status = http.StatusConflict
+		shortLinkID, _ = h.repo.GetShortLink(validatedLink)
+	}
 
 	shortLink := fmt.Sprintf("%s/%s", h.baseURL, shortLinkID)
 	responseData := shortLink
@@ -57,7 +63,7 @@ func (h *Handlers) CreateShortLink(res http.ResponseWriter, req *http.Request) {
 		responseData = fmt.Sprintf(`{"result":"%s"}`, shortLink)
 	}
 
-	res.WriteHeader(http.StatusCreated)
+	res.WriteHeader(status)
 	res.Write([]byte(responseData))
 
 	logger.Log.Info("Short link created",
@@ -68,7 +74,7 @@ func (h *Handlers) CreateShortLink(res http.ResponseWriter, req *http.Request) {
 
 func (h *Handlers) Redirect(w http.ResponseWriter, r *http.Request) {
 	shortLinkID := chi.URLParam(r, "slug")
-	originLink, ok := h.repo.GetLink(shortLinkID)
+	originLink, ok := h.repo.GetOriginLink(shortLinkID)
 
 	if ok {
 		http.Redirect(w, r, originLink, http.StatusTemporaryRedirect)

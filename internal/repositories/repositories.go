@@ -1,7 +1,8 @@
 package repositories
 
 type LinkRepo interface {
-	GetLink(string) (string, bool)
-	CreateLink(string, string)
+	GetOriginLink(string) (string, bool)
+	GetShortLink(string) (string, bool)
+	CreateLink(string, string) error
 	RemoveLink(string)
 }
