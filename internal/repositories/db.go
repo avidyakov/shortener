@@ -1,7 +1,8 @@
 package repositories
 
 import (
-	_ "github.com/jackc/pgx/v5" // for tests only
+	"database/sql"
+	_ "github.com/jackc/pgx/v5"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
@@ -19,11 +20,14 @@ type DBRepo struct {
 }
 
 func NewDBRepo(databaseDSN string) LinkRepo {
-	db, err := gorm.Open(postgres.New(postgres.Config{
-		DriverName: "pgx",
-		DSN:        databaseDSN,
-	}))
+	sqlDB, err := sql.Open("pgx", databaseDSN)
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		Conn: sqlDB,
+	}), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
