@@ -13,7 +13,7 @@ type Link struct {
 	ShortLinkID string `gorm:"uniqueIndex"`
 }
 
-type dbRepo struct {
+type DBRepo struct {
 	db *gorm.DB
 }
 
@@ -28,12 +28,12 @@ func NewDBRepo(databaseDSN string) LinkRepo {
 		log.Fatal(err)
 	}
 
-	return &dbRepo{
+	return &DBRepo{
 		db: db,
 	}
 }
 
-func (r *dbRepo) GetOriginLink(shortLinkID string) (originLink string, ok bool) {
+func (r *DBRepo) GetOriginLink(shortLinkID string) (originLink string, ok bool) {
 	var link Link
 	r.db.First(&link, "short_link_id = ?", shortLinkID)
 
@@ -43,7 +43,7 @@ func (r *dbRepo) GetOriginLink(shortLinkID string) (originLink string, ok bool) 
 	return link.OriginURL, true
 }
 
-func (r *dbRepo) GetShortLink(originLink string) (string, bool) {
+func (r *DBRepo) GetShortLink(originLink string) (string, bool) {
 	var link Link
 	r.db.First(&link, "origin_url = ?", originLink)
 
@@ -53,7 +53,7 @@ func (r *dbRepo) GetShortLink(originLink string) (string, bool) {
 	return link.ShortLinkID, true
 }
 
-func (r *dbRepo) CreateLink(shortLinkID string, originLink string) error {
+func (r *DBRepo) CreateLink(shortLinkID string, originLink string) error {
 	tx := r.db.Create(&Link{
 		OriginURL:   originLink,
 		ShortLinkID: shortLinkID,
@@ -64,6 +64,10 @@ func (r *dbRepo) CreateLink(shortLinkID string, originLink string) error {
 	return nil
 }
 
-func (r *dbRepo) RemoveLink(shortLinkID string) {
+func (r *DBRepo) RemoveLink(shortLinkID string) {
 	r.db.Delete(&Link{}, "short_link_id = ?", shortLinkID)
+}
+
+func (r *DBRepo) CheckConnection() error {
+	return r.db.Exec("SELECT 1").Error
 }
