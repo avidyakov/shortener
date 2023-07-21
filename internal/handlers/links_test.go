@@ -23,7 +23,7 @@ func TestMain(m *testing.M) {
 	defer logger.Log.Sync()
 
 	repo = repositories.NewMemoryRepo()
-	h = NewHandlers(repo, "http://localhost:8080", "")
+	h = NewHandlers(repo, "http://localhost:8080")
 
 	ts = httptest.NewServer(h.LinkRouter())
 	defer ts.Close()
