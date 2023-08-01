@@ -28,14 +28,24 @@ func NewFileRepo(storagePath string) LinkRepo {
 	}
 }
 
-func (r *fileRepo) GetLink(shortLinkID string) (originLink string, ok bool) {
+func (r *fileRepo) GetOriginLink(shortLinkID string) (originLink string, ok bool) {
 	originLink, ok = r.links[shortLinkID]
 	return
 }
 
-func (r *fileRepo) CreateLink(shortLinkID string, originLink string) {
+func (r *fileRepo) GetShortLink(originLink string) (shortLinkID string, ok bool) {
+	for k, v := range r.links {
+		if v == originLink {
+			return k, true
+		}
+	}
+	return "", false
+}
+
+func (r *fileRepo) CreateLink(shortLinkID string, originLink string) error {
 	r.links[shortLinkID] = originLink
 	r.writeFile()
+	return nil
 }
 
 func (r *fileRepo) RemoveLink(shortLinkID string) {

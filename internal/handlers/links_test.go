@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"encoding/json"
 	"github.com/avidyakov/shortener/internal/logger"
+	"github.com/avidyakov/shortener/internal/models"
 	"github.com/avidyakov/shortener/internal/repositories"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -11,17 +13,17 @@ import (
 	"testing"
 )
 
-var h *LinkHandlers
+var h *Handlers
 var ts *httptest.Server
 var client *http.Client
+var repo repositories.LinkRepo
 
 func TestMain(m *testing.M) {
 	logger.Log, _ = zap.NewProduction()
 	defer logger.Log.Sync()
 
-	h = NewLinkHandlers(
-		repositories.NewMemoryLink(), "http://localhost:8080",
-	)
+	repo = repositories.NewMemoryRepo()
+	h = NewHandlers(repo, "http://localhost:8080")
 
 	ts = httptest.NewServer(h.LinkRouter())
 	defer ts.Close()
@@ -83,4 +85,24 @@ func TestCreateLinkInvalidURL(t *testing.T) {
 	defer resp.Body.Close()
 
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode, "Expected status code %d, but got %d", http.StatusBadRequest, resp.StatusCode)
+}
+
+func TestCreateLinkBacket(t *testing.T) {
+	resp, err := client.Post(ts.URL+"/api/shorten/batch", "application/json", strings.NewReader(`[{"original_url": "https://www.google.com", "correlation_id": "1"}, {"original_url": "https://ya.ru", "correlation_id": "2"}]`))
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	require.Equal(t, http.StatusCreated, resp.StatusCode, "Expected status code %d, but got %d", http.StatusCreated, resp.StatusCode)
+	links := make([]models.ResponseLinkBatch, 2)
+	err = json.NewDecoder(resp.Body).Decode(&links)
+	require.NoError(t, err)
+	require.Len(t, links, 2)
+
+	shortGoogleID := strings.Replace(links[0].ShortURL, h.baseURL+"/", "", -1)
+	google, _ := repo.GetOriginLink(shortGoogleID)
+	require.Equal(t, google, "https://www.google.com")
+
+	shortYandexID := strings.Replace(links[1].ShortURL, h.baseURL+"/", "", -1)
+	yandex, _ := repo.GetOriginLink(shortYandexID)
+	require.Equal(t, yandex, "https://ya.ru")
 }
