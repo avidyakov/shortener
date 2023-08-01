@@ -11,6 +11,10 @@ type fileRepo struct {
 	storagePath string
 }
 
+func (r *fileRepo) CheckConnection() error {
+	return nil
+}
+
 func NewFileRepo(storagePath string) LinkRepo {
 	content, err := os.ReadFile(storagePath)
 	links := make(map[string]string)

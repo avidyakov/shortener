@@ -5,4 +5,5 @@ type LinkRepo interface {
 	GetShortLink(string) (string, bool)
 	CreateLink(string, string) error
 	RemoveLink(string)
+	CheckConnection() error
 }

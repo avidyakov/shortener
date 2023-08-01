@@ -4,6 +4,10 @@ type memoryRepo struct {
 	links map[string]string
 }
 
+func (m *memoryRepo) CheckConnection() error {
+	return nil
+}
+
 func NewMemoryRepo() LinkRepo {
 	return &memoryRepo{
 		links: make(map[string]string),
