@@ -14,6 +14,11 @@ type Response struct {
 
 func (h *Handlers) UserURLs(w http.ResponseWriter, r *http.Request) {
 	parsedToken, _ := r.Cookie("token")
+	if parsedToken == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	userID := h.getUserID(parsedToken.Value)
 	if userID == -1 {
 		w.WriteHeader(http.StatusUnauthorized)
