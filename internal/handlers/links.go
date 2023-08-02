@@ -151,7 +151,11 @@ func (h *Handlers) CreateABunchOfLinks(w http.ResponseWriter, r *http.Request) {
 		}
 		shortLinkID := utils.GenerateShortID(8)
 		userID := 1
-		h.repo.CreateLink(shortLinkID, validatedLink, userID)
+		err = h.repo.CreateLink(shortLinkID, validatedLink, userID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		shortLink := fmt.Sprintf("%s/%s", h.baseURL, shortLinkID)
 		shortUrls = append(shortUrls, models.ResponseLinkBatch{
