@@ -26,7 +26,7 @@ type DBRepo struct {
 	db *gorm.DB
 }
 
-func (r *DBRepo) GetUrlsByUserId(userID int) ([]map[string]string, error) {
+func (r *DBRepo) GetUrlsByUserID(userID int) ([]map[string]string, error) {
 	var links []Link
 	r.db.Find(&links, "user_id = ?", userID)
 	var result []map[string]string

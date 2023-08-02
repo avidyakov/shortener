@@ -7,5 +7,5 @@ type LinkRepo interface {
 	RemoveLink(string)
 	CheckConnection() error
 	CreateUser() (int, error)
-	GetUrlsByUserId(int) ([]map[string]string, error)
+	GetUrlsByUserID(int) ([]map[string]string, error)
 }

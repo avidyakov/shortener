@@ -20,7 +20,7 @@ func (h *Handlers) UserURLs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	urls, err := h.repo.GetUrlsByUserId(userID)
+	urls, err := h.repo.GetUrlsByUserID(userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

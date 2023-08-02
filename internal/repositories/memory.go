@@ -4,7 +4,7 @@ type memoryRepo struct {
 	links map[string]string
 }
 
-func (m *memoryRepo) GetUrlsByUserId(_ int) ([]map[string]string, error) {
+func (m *memoryRepo) GetUrlsByUserID(_ int) ([]map[string]string, error) {
 	panic("implement me")
 }
 
