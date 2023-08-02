@@ -9,7 +9,7 @@ import (
 
 type Response struct {
 	ShortURL  string `json:"short_url"`
-	OriginURL string `json:"origin_url"`
+	OriginURL string `json:"original_url"`
 }
 
 func (h *Handlers) UserURLs(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +30,8 @@ func (h *Handlers) UserURLs(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	response := []Response{}
 	for i := range urls {
-		response = append(response, Response{ShortURL: urls[i]["short_url"], OriginURL: urls[i]["origin_url"]})
+		shortLink := fmt.Sprintf("%s/%s", h.baseURL, urls[i]["short_url"])
+		response = append(response, Response{ShortURL: shortLink, OriginURL: urls[i]["origin_url"]})
 	}
 	json.NewEncoder(w).Encode(response)
 }
