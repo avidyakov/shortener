@@ -17,7 +17,7 @@ func (r *fileRepo) GetUrlsByUserID(i int) ([]map[string]string, error) {
 }
 
 func (r *fileRepo) CreateUser() (int, error) {
-	panic("implement me")
+	return 0, nil
 }
 
 func (r *fileRepo) CheckConnection() error {
