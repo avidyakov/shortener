@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"net/http"
@@ -12,7 +13,26 @@ type Response struct {
 }
 
 func (h *Handlers) UserURLs(w http.ResponseWriter, r *http.Request) {
+	parsedToken, _ := r.Cookie("token")
+	userID := h.getUserId(parsedToken.Value)
+	if userID == -1 {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
+	urls, err := h.repo.GetUrlsByUserId(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	response := []Response{}
+	for i := range urls {
+		response = append(response, Response{ShortURL: urls[i]["short_url"], OriginURL: urls[i]["origin_url"]})
+	}
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *Handlers) getUserId(tokenString string) int {

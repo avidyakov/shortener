@@ -4,6 +4,10 @@ type memoryRepo struct {
 	links map[string]string
 }
 
+func (m *memoryRepo) GetUrlsByUserId(_ int) ([]map[string]string, error) {
+	panic("implement me")
+}
+
 func (m *memoryRepo) CreateUser() (int, error) {
 	panic("implement me")
 }

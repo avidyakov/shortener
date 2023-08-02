@@ -11,6 +11,11 @@ type fileRepo struct {
 	storagePath string
 }
 
+func (r *fileRepo) GetUrlsByUserId(i int) ([]map[string]string, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (r *fileRepo) CreateUser() (int, error) {
 	panic("implement me")
 }

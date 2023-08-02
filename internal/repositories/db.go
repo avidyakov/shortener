@@ -26,6 +26,19 @@ type DBRepo struct {
 	db *gorm.DB
 }
 
+func (r *DBRepo) GetUrlsByUserId(userID int) ([]map[string]string, error) {
+	var links []Link
+	r.db.Find(&links, "user_id = ?", userID)
+	var result []map[string]string
+	for _, link := range links {
+		result = append(result, map[string]string{
+			"short_url":  link.ShortLinkID,
+			"origin_url": link.OriginURL,
+		})
+	}
+	return result, nil
+}
+
 func (r *DBRepo) CreateUser() (int, error) {
 	user := &User{}
 	tx := r.db.Create(user)
