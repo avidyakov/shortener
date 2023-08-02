@@ -9,7 +9,7 @@ func (m *memoryRepo) GetUrlsByUserID(_ int) ([]map[string]string, error) {
 }
 
 func (m *memoryRepo) CreateUser() (int, error) {
-	panic("implement me")
+	return 0, nil
 }
 
 func (m *memoryRepo) CheckConnection() error {
