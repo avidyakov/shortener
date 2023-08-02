@@ -58,7 +58,7 @@ func (h *Handlers) CreateShortLink(res http.ResponseWriter, req *http.Request) {
 	shortLinkID := utils.GenerateShortID(8)
 	// get cookie
 	parsedToken, _ := req.Cookie("token")
-	userID := h.getUserId(parsedToken.Value)
+	userID := h.getUserID(parsedToken.Value)
 	if userID == -1 {
 		userID, err = h.repo.CreateUser()
 	}

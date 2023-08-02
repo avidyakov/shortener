@@ -14,7 +14,7 @@ type Response struct {
 
 func (h *Handlers) UserURLs(w http.ResponseWriter, r *http.Request) {
 	parsedToken, _ := r.Cookie("token")
-	userID := h.getUserId(parsedToken.Value)
+	userID := h.getUserID(parsedToken.Value)
 	if userID == -1 {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
@@ -35,7 +35,7 @@ func (h *Handlers) UserURLs(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func (h *Handlers) getUserId(tokenString string) int {
+func (h *Handlers) getUserID(tokenString string) int {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims,
 		func(t *jwt.Token) (interface{}, error) {
