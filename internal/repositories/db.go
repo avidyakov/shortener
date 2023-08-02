@@ -76,13 +76,13 @@ func NewDBRepo(databaseDSN string) LinkRepo {
 func (r *DBRepo) GetOriginLink(shortLinkID string) (originLink string, ok bool) {
 	var link Link
 	r.db.First(&link, "short_link_id = ?", shortLinkID)
-	return link.OriginURL, link.ID == 0
+	return link.OriginURL, link.ID != 0
 }
 
 func (r *DBRepo) GetShortLink(originLink string) (string, bool) {
 	var link Link
 	r.db.First(&link, "origin_url = ?", originLink)
-	return link.ShortLinkID, link.ID == 0
+	return link.ShortLinkID, link.ID != 0
 }
 
 func (r *DBRepo) CreateLink(shortLinkID string, originLink string, userID int) error {
