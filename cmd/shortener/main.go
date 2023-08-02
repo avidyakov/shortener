@@ -28,7 +28,7 @@ func main() {
 	logger.Log.Info("Initializing server configuration and handlers")
 	conf := config.NewConfig()
 	repo := getRepository(conf)
-	handler := handlers.NewHandlers(repo, conf.BaseURL)
+	handler := handlers.NewHandlers(repo, conf.BaseURL, conf.SecretKey)
 
 	logger.Log.Info("Starting server",
 		zap.String("serverAddr", conf.ServerAddr),

@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 }
 
 func createLink(t *testing.T, shortLink, originLink string) {
-	h.repo.CreateLink(shortLink, originLink)
+	h.repo.CreateLink(shortLink, originLink, uint(1))
 
 	t.Cleanup(func() {
 		h.repo.RemoveLink(shortLink)

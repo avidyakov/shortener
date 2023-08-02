@@ -8,14 +8,16 @@ import (
 )
 
 type Handlers struct {
-	baseURL string
-	repo    repositories.LinkRepo
+	baseURL   string
+	repo      repositories.LinkRepo
+	secretKey string
 }
 
-func NewHandlers(repo repositories.LinkRepo, baseURL string) *Handlers {
+func NewHandlers(repo repositories.LinkRepo, baseURL, secretKey string) *Handlers {
 	return &Handlers{
-		baseURL: baseURL,
-		repo:    repo,
+		baseURL:   baseURL,
+		repo:      repo,
+		secretKey: secretKey,
 	}
 }
 

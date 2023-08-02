@@ -11,6 +11,10 @@ type fileRepo struct {
 	storagePath string
 }
 
+func (r *fileRepo) CreateUser() (int, error) {
+	panic("implement me")
+}
+
 func (r *fileRepo) CheckConnection() error {
 	return nil
 }
@@ -46,7 +50,7 @@ func (r *fileRepo) GetShortLink(originLink string) (shortLinkID string, ok bool)
 	return "", false
 }
 
-func (r *fileRepo) CreateLink(shortLinkID string, originLink string) error {
+func (r *fileRepo) CreateLink(shortLinkID string, originLink string, _ int) error {
 	r.links[shortLinkID] = originLink
 	r.writeFile()
 	return nil

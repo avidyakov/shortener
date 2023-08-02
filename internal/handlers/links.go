@@ -7,10 +7,19 @@ import (
 	"github.com/avidyakov/shortener/internal/models"
 	"github.com/avidyakov/shortener/internal/utils"
 	"github.com/go-chi/chi/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"go.uber.org/zap"
 	"io"
 	"net/http"
+	"time"
 )
+
+const TokenExp = time.Hour * 24
+
+type Claims struct {
+	jwt.RegisteredClaims
+	UserID int
+}
 
 func (h *Handlers) CreateShortLink(res http.ResponseWriter, req *http.Request) {
 	var originLink string
@@ -46,9 +55,22 @@ func (h *Handlers) CreateShortLink(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}
-
 	shortLinkID := utils.GenerateShortID(8)
-	err = h.repo.CreateLink(shortLinkID, validatedLink)
+	// get cookie
+	parsedToken, _ := req.Cookie("token")
+	userID := h.getUserId(parsedToken.Value)
+	if userID == -1 {
+		userID, err = h.repo.CreateUser()
+	}
+
+	if err != nil {
+		logger.Log.Error("Can't create user",
+			zap.Error(err),
+		)
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = h.repo.CreateLink(shortLinkID, validatedLink, userID)
 	status := http.StatusCreated
 	if err != nil {
 		status = http.StatusConflict
@@ -62,7 +84,19 @@ func (h *Handlers) CreateShortLink(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
 		responseData = fmt.Sprintf(`{"result":"%s"}`, shortLink)
 	}
-
+	token, err := h.buildJWTString(userID)
+	if err != nil {
+		logger.Log.Error("Can't create JWT token",
+			zap.Error(err),
+		)
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.SetCookie(res, &http.Cookie{
+		Name:    "token",
+		Value:   token,
+		Expires: time.Now().Add(TokenExp),
+	})
 	res.WriteHeader(status)
 	res.Write([]byte(responseData))
 
@@ -112,7 +146,8 @@ func (h *Handlers) CreateABunchOfLinks(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		shortLinkID := utils.GenerateShortID(8)
-		h.repo.CreateLink(shortLinkID, validatedLink)
+		userID := 1
+		h.repo.CreateLink(shortLinkID, validatedLink, userID)
 
 		shortLink := fmt.Sprintf("%s/%s", h.baseURL, shortLinkID)
 		shortUrls = append(shortUrls, models.ResponseLinkBatch{
@@ -124,4 +159,14 @@ func (h *Handlers) CreateABunchOfLinks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(shortUrls)
+}
+
+func (h *Handlers) buildJWTString(userID int) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenExp)),
+		},
+		UserID: userID,
+	})
+	return token.SignedString([]byte(h.secretKey))
 }

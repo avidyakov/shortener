@@ -13,10 +13,23 @@ type Link struct {
 	ID          uint   `gorm:"primaryKey"`
 	OriginURL   string `gorm:"uniqueIndex"`
 	ShortLinkID string `gorm:"uniqueIndex"`
+	UserID      uint
+}
+
+type User struct {
+	gorm.Model
+	ID    uint `gorm:"primaryKey"`
+	Links []Link
 }
 
 type DBRepo struct {
 	db *gorm.DB
+}
+
+func (r *DBRepo) CreateUser() (int, error) {
+	user := &User{}
+	tx := r.db.Create(user)
+	return int(user.ID), tx.Error
 }
 
 func NewDBRepo(databaseDSN string) LinkRepo {
@@ -37,6 +50,11 @@ func NewDBRepo(databaseDSN string) LinkRepo {
 		log.Fatal(err)
 	}
 
+	err = db.AutoMigrate(&User{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	return &DBRepo{
 		db: db,
 	}
@@ -45,32 +63,22 @@ func NewDBRepo(databaseDSN string) LinkRepo {
 func (r *DBRepo) GetOriginLink(shortLinkID string) (originLink string, ok bool) {
 	var link Link
 	r.db.First(&link, "short_link_id = ?", shortLinkID)
-
-	if link.ID == 0 {
-		return "", false
-	}
-	return link.OriginURL, true
+	return link.OriginURL, link.ID == 0
 }
 
 func (r *DBRepo) GetShortLink(originLink string) (string, bool) {
 	var link Link
 	r.db.First(&link, "origin_url = ?", originLink)
-
-	if link.ID == 0 {
-		return "", false
-	}
-	return link.ShortLinkID, true
+	return link.ShortLinkID, link.ID == 0
 }
 
-func (r *DBRepo) CreateLink(shortLinkID string, originLink string) error {
+func (r *DBRepo) CreateLink(shortLinkID string, originLink string, userID int) error {
 	tx := r.db.Create(&Link{
 		OriginURL:   originLink,
 		ShortLinkID: shortLinkID,
+		UserID:      uint(userID),
 	})
-	if tx.Error != nil {
-		return tx.Error
-	}
-	return nil
+	return tx.Error
 }
 
 func (r *DBRepo) RemoveLink(shortLinkID string) {
