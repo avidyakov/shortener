@@ -4,6 +4,18 @@ type memoryRepo struct {
 	links map[string]string
 }
 
+func (m *memoryRepo) GetUrlsByUserID(_ int) ([]map[string]string, error) {
+	panic("implement me")
+}
+
+func (m *memoryRepo) CreateUser() (int, error) {
+	return 0, nil
+}
+
+func (m *memoryRepo) CheckConnection() error {
+	return nil
+}
+
 func NewMemoryRepo() LinkRepo {
 	return &memoryRepo{
 		links: make(map[string]string),
@@ -24,7 +36,7 @@ func (m *memoryRepo) GetShortLink(originLink string) (shortLinkID string, ok boo
 	return "", false
 }
 
-func (m *memoryRepo) CreateLink(shortLinkID, originLink string) error {
+func (m *memoryRepo) CreateLink(shortLinkID, originLink string, _ int) error {
 	m.links[shortLinkID] = originLink
 	return nil
 }

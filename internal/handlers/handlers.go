@@ -8,14 +8,16 @@ import (
 )
 
 type Handlers struct {
-	baseURL string
-	repo    repositories.LinkRepo
+	baseURL   string
+	repo      repositories.LinkRepo
+	secretKey string
 }
 
-func NewHandlers(repo repositories.LinkRepo, baseURL string) *Handlers {
+func NewHandlers(repo repositories.LinkRepo, baseURL, secretKey string) *Handlers {
 	return &Handlers{
-		baseURL: baseURL,
-		repo:    repo,
+		baseURL:   baseURL,
+		repo:      repo,
+		secretKey: secretKey,
 	}
 }
 
@@ -27,6 +29,7 @@ func (h *Handlers) LinkRouter() chi.Router {
 	r.Post("/", h.CreateShortLink)
 	r.Post("/api/shorten", h.CreateShortLink) // for tests only
 	r.Post("/api/shorten/batch", h.CreateABunchOfLinks)
+	r.Get("/api/user/urls", h.UserURLs)
 	r.Get("/ping", h.Ping)
 	return r
 }

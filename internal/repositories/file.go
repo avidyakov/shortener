@@ -11,6 +11,19 @@ type fileRepo struct {
 	storagePath string
 }
 
+func (r *fileRepo) GetUrlsByUserID(i int) ([]map[string]string, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *fileRepo) CreateUser() (int, error) {
+	return 0, nil
+}
+
+func (r *fileRepo) CheckConnection() error {
+	return nil
+}
+
 func NewFileRepo(storagePath string) LinkRepo {
 	content, err := os.ReadFile(storagePath)
 	links := make(map[string]string)
@@ -42,7 +55,7 @@ func (r *fileRepo) GetShortLink(originLink string) (shortLinkID string, ok bool)
 	return "", false
 }
 
-func (r *fileRepo) CreateLink(shortLinkID string, originLink string) error {
+func (r *fileRepo) CreateLink(shortLinkID string, originLink string, _ int) error {
 	r.links[shortLinkID] = originLink
 	r.writeFile()
 	return nil

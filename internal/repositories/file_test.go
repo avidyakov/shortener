@@ -14,7 +14,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestCreateLink(t *testing.T) {
-	repo.CreateLink("12345678", "https://www.google.com")
+	repo.CreateLink("12345678", "https://www.google.com", 1)
 	originLink, ok := repo.GetOriginLink("12345678")
 	if !ok {
 		t.Error("Expected to get link")

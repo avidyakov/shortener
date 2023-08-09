@@ -11,6 +11,7 @@ type Configuration struct {
 	ServerAddr  string `env:"SERVER_ADDR"`
 	File        string `env:"FILE_STORAGE_PATH"`
 	DatabaseDSN string `env:"DATABASE_DSN"`
+	SecretKey   string `env:"SECRET_KEY"`
 }
 
 func NewConfig() *Configuration {
@@ -21,6 +22,7 @@ func NewConfig() *Configuration {
 	flag.StringVar(&config.BaseURL, "b", "http://localhost:8080", "base url for short links")
 	flag.StringVar(&config.DatabaseDSN, "d", "", "database dsn")
 	flag.StringVar(&config.File, "f", "", "file to store links")
+	flag.StringVar(&config.File, "s", "", "secret key")
 	flag.Parse()
 
 	// environment variables with max priority

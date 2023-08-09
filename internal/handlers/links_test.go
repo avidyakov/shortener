@@ -23,7 +23,7 @@ func TestMain(m *testing.M) {
 	defer logger.Log.Sync()
 
 	repo = repositories.NewMemoryRepo()
-	h = NewHandlers(repo, "http://localhost:8080")
+	h = NewHandlers(repo, "http://localhost:8080", "topsecret")
 
 	ts = httptest.NewServer(h.LinkRouter())
 	defer ts.Close()
@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 }
 
 func createLink(t *testing.T, shortLink, originLink string) {
-	h.repo.CreateLink(shortLink, originLink)
+	h.repo.CreateLink(shortLink, originLink, 1)
 
 	t.Cleanup(func() {
 		h.repo.RemoveLink(shortLink)
