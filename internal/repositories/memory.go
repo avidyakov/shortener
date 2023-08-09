@@ -4,6 +4,10 @@ type memoryRepo struct {
 	links map[string]string
 }
 
+func (m *memoryRepo) DeleteUrlsByUserID(strings []string, i int) error {
+	panic("implement me")
+}
+
 func (m *memoryRepo) GetUrlsByUserID(_ int) ([]map[string]string, error) {
 	panic("implement me")
 }

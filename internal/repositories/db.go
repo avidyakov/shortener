@@ -26,6 +26,11 @@ type DBRepo struct {
 	db *gorm.DB
 }
 
+func (r *DBRepo) DeleteUrlsByUserID(urls []string, userID int) error {
+	tx := r.db.Where("user_id = ?", userID).Delete(&Link{}, "short_link_id IN ?", urls)
+	return tx.Error
+}
+
 func (r *DBRepo) GetUrlsByUserID(userID int) ([]map[string]string, error) {
 	var links []Link
 	r.db.Find(&links, "user_id = ?", userID)

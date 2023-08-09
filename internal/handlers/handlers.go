@@ -30,6 +30,7 @@ func (h *Handlers) LinkRouter() chi.Router {
 	r.Post("/api/shorten", h.CreateShortLink) // for tests only
 	r.Post("/api/shorten/batch", h.CreateABunchOfLinks)
 	r.Get("/api/user/urls", h.UserURLs)
+	r.Delete("/api/user/urls", h.DeleteUserURLs)
 	r.Get("/ping", h.Ping)
 	return r
 }

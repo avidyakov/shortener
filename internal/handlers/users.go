@@ -33,12 +33,40 @@ func (h *Handlers) UserURLs(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	response := []Response{}
+	var response []Response
 	for i := range urls {
 		shortLink := fmt.Sprintf("%s/%s", h.baseURL, urls[i]["short_url"])
 		response = append(response, Response{ShortURL: shortLink, OriginURL: urls[i]["origin_url"]})
 	}
 	json.NewEncoder(w).Encode(response)
+}
+
+func (h *Handlers) DeleteUserURLs(w http.ResponseWriter, r *http.Request) {
+	parsedToken, _ := r.Cookie("token")
+	if parsedToken == nil {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	userID := h.getUserID(parsedToken.Value)
+	if userID == -1 {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	var urls []string
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&urls); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err := h.repo.DeleteUrlsByUserID(urls, userID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusAccepted)
 }
 
 func (h *Handlers) getUserID(tokenString string) int {

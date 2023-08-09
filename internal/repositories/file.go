@@ -11,8 +11,11 @@ type fileRepo struct {
 	storagePath string
 }
 
+func (r *fileRepo) DeleteUrlsByUserID(strings []string, i int) error {
+	panic("implement me")
+}
+
 func (r *fileRepo) GetUrlsByUserID(i int) ([]map[string]string, error) {
-	//TODO implement me
 	panic("implement me")
 }
 
